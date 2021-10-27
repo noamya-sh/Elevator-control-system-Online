@@ -14,7 +14,9 @@ public class Ex0_main {
     public static void main(String[] ar) {
         String codeOwner = codeOwner();
         Simulator_A.setCodeOwner(codeOwner);
-        int stage = 7;  // any case in [0,9].
+
+        for (int i=0;i<10;i++){
+        int stage = i;  // any case in [0,9].
         System.out.println("Ex0 Simulator: isStarting, stage="+stage+") ... =  ");
         String callFile = null; // use the predefined cases [1-9].
         // String callFile = "data/Ex0_stage_2__.csv"; //
@@ -32,7 +34,7 @@ public class Ex0_main {
         Simulator_A.report(report_name); // print the algorithm results in the given case, and save the log to a file.
         //Simulator_A.report(); // if now file  - simple prints just the results.
         Simulator_A.writeAllCalls("out/Ex0_Calls_case_"+stage+"_.csv"); // time,src,dest,state,elevInd, dt.
-    }
+    }}
 
     private static String codeOwner() {
         String owners = "none";

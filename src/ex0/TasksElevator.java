@@ -64,41 +64,41 @@ public class TasksElevator {
         floors[calFloor(floor)]=NULL;
     }
     public int stateFloor(int pos){
-        return floors[calFloor(pos)];
+        return floors[pos+var];
     }
-    public double getTime(){
-        double all=0,t=0;
-        for (int i = 0;i<calls.size();i++){
-            CallForElevator ca = calls.get(i);
-            if (ca.getState()==DONE){
-                calls.remove(ca);
-                continue;
-            }
-            if(lastDirect==UP && ca.getType()==UP){
-                if (ca.getState()==GOING2SRC && e.getPos()>ca.getSrc()) {//Extreme case
-                    int a = getTop();
-                    int b = getBottom();
-                    all += (numStop(b,a)+1)*stop1()+disTime((a-e.getPos()+var)+(a-b)+(ca.getSrc()+var-b));
-                    continue;
-                    //test
-                }
-                all += numStop(e.getPos()+var,ca.getDest()+var)*stop1()+disTime(ca.getDest()-e.getPos());
-                continue;
-            }
-            if(lastDirect==DOWN && ca.getType()==DOWN){
-                if (ca.getState()==GOING2SRC && e.getPos()<ca.getSrc()) {//Extreme case
-                    int a = getTop();
-                    int b = getBottom();
-                    all += (numStop(b,a)+1)*stop1()+disTime((e.getPos()+var-b)+(a-b)+(a-ca.getSrc()+var));
-                    continue;
-                    //test
-                }
-                all += numStop(e.getPos()+var,ca.getDest()+var)*stop1()+disTime(e.getPos()-ca.getDest());
-                continue;
-            }
-        }
-        return all;
-    }
+//    public double getTime(){
+//        double all=0,t=0;
+//        for (int i = 0;i<calls.size();i++){
+//            CallForElevator ca = calls.get(i);
+//            if (ca.getState()==DONE){
+//                calls.remove(ca);
+//                continue;
+//            }
+//            if(lastDirect==UP && ca.getType()==UP){
+//                if (ca.getState()==GOING2SRC && e.getPos()>ca.getSrc()) {//Extreme case
+//                    int a = getTop();
+//                    int b = getBottom();
+//                    all += (numStop(b,a)*stop1()+disTime((a-e.getPos()+var)+(a-b)+(ca.getSrc()+var-b)));
+//                    continue;
+//                    //test
+//                }
+//                all += numStop(e.getPos()+var,ca.getDest()+var)*stop1()+disTime(ca.getDest()-e.getPos());
+//                continue;
+//            }
+//            if(lastDirect==DOWN && ca.getType()==DOWN){
+//                if (ca.getState()==GOING2SRC && e.getPos()<ca.getSrc()) {//Extreme case
+//                    int a = getTop();
+//                    int b = getBottom();
+//                    all += (numStop(b,a)*stop1()+disTime((e.getPos()+var-b)+(a-b)+(a-ca.getSrc()+var)));
+//                    continue;
+//                    //test
+//                }
+//                all += numStop(e.getPos()+var,ca.getDest()+var)*stop1()+disTime(e.getPos()-ca.getDest());
+//                continue;
+//            }
+//        }
+//        return all;
+//    }
     public double taskTime(CallForElevator c){
         if (c.getState()==DONE){
             return 0;
@@ -195,7 +195,7 @@ public class TasksElevator {
     }
     public int numStop(int start,int end){
         int count=0;
-        for (int i=start;i<end;i++)
+        for (int i=start;i<=end;i++)
             if (floors[i]>0)
                 count++;
         return count;
@@ -222,9 +222,7 @@ public class TasksElevator {
     }
 
     public int calFloor(int a){
-        if (a<0)
-            return Math.abs(e.getMinFloor()-a);
-        return a-e.getMinFloor();
+        return a+var;
     }
     private double stop1() {
         return e.getTimeForClose()+e.getTimeForOpen()+e.getStartTime()+e.getStopTime();

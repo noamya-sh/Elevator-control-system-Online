@@ -5,6 +5,8 @@ import ex0.CallForElevator;
 import ex0.Elevator;
 import ex0.TasksElevator;
 
+import java.util.ArrayList;
+
 public class myAlgo implements ElevatorAlgo {
     public static final int UP = 1, LEVEL = 0, DOWN = -1, ERROR = -2;
     private Building b;
@@ -48,8 +50,8 @@ public class myAlgo implements ElevatorAlgo {
     @Override
     public int allocateAnElevator(CallForElevator c) {
         double temp=Integer.MAX_VALUE;int ind=0;boolean flag=false;
-        //first - search elevator without calls
 
+        //first - search elevator without calls
         for (int i=0;i<t.length;i++){
             if (t[i].getCalls().isEmpty()){
                 if (temp>t[i].disTime(Math.abs(e[i].getPos()-c.getSrc()))){
@@ -67,8 +69,8 @@ public class myAlgo implements ElevatorAlgo {
         for (int i=0;i<t.length;i++){
             if (c.getType()==t[i].getLastDirect())
                 if ((c.getType()==UP && e[i].getPos()<c.getSrc()) || (c.getType()==DOWN && e[i].getPos()>c.getSrc())) {
-                    double a= t[i].taskTime(c)+t[i].getTime()+t[i].timeAddition(c);
-                    if (a < temp && t[i].taskTime(c)>=(e[i].getStopTime()+1)) {
+                    double a= t[i].taskTime(c)+calTime(t[i])+t[i].timeAddition(c);
+                    if (a < temp && t[i].taskTime(c)>=(e[i].getStopTime())) {
                         temp = a;
                         ind =i;
                         flag=true;
@@ -81,7 +83,7 @@ public class myAlgo implements ElevatorAlgo {
         }
         //else - search min "cost" of time in elevators
         for (int i=0;i<t.length;i++){
-            double a= t[i].taskTime(c)+t[i].getTime()+t[i].timeAddition(c);
+            double a= t[i].taskTime(c)+calTime(t[i])+t[i].timeAddition(c);
             if (a < temp) {
                 temp = a;
                 ind = i;
@@ -89,6 +91,14 @@ public class myAlgo implements ElevatorAlgo {
         }
         addCall(ind,c);
         return ind;
+    }
+
+    private double calTime(TasksElevator tt) {
+        double all=0;
+        ArrayList<CallForElevator> calls=tt.getCalls();
+        for(int i=0;i<calls.size();i++)
+            all+=tt.taskTime(calls.get(i));
+        return all;
     }
 
     private void addCall(int ind, CallForElevator c) {
@@ -113,14 +123,12 @@ public class myAlgo implements ElevatorAlgo {
                 e[elev].goTo(t[elev].getNext());
         }
     }
-    private void refresh(int elev){
-        if (e[elev].getState()==LEVEL){
-            int x=t[elev].stateFloor(e[elev].getPos());
-            if(x==TasksElevator.SRC||x==TasksElevator.SRCDEST)
-                t[elev].addDest2floors(e[elev].getPos());
-        }
-        t[elev].cleanFloor(e[elev].getPos());
-        t[elev].cleanCall();
+    private void refresh(int g){
+        int x=t[g].stateFloor(e[g].getPos());
+        if(x==TasksElevator.SRC||x==TasksElevator.SRCDEST)
+            t[g].addDest2floors(e[g].getPos());
+        t[g].cleanFloor(e[g].getPos());
+        t[g].cleanCall();
     }
 
 }
