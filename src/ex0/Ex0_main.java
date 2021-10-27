@@ -10,7 +10,7 @@ import ex0.simulator.Simulator_A;
  * starting to implement the algorithm.
  */
 public class Ex0_main {
-    public static Long ID0=666L, ID1 = null, ID2 = null;
+    public static Long ID0=316503986L, ID1 = 312194681L, ID2 = null;
     public static void main(String[] ar) {
         String codeOwner = codeOwner();
         Simulator_A.setCodeOwner(codeOwner);

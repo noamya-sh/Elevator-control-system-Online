@@ -37,7 +37,7 @@ public class myAlgo implements ElevatorAlgo {
      */
     @Override
     public String algoName() {
-        return "null";
+        return "The best";
     }
 
     /**

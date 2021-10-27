@@ -107,7 +107,7 @@ public class TasksElevator {
             if ((c.getState()==GOING2SRC||c.getState()==INIT) && e.getPos()>c.getSrc()) {//Extreme case
                 int a = getTop();
                 int b = getBottom();
-                return (numStop(b,a)+1)*stop1()+disTime((a+var-(e.getPos()+var)+(a-b)+((c.getSrc()+var)-b)));
+                return numStop(b,a)*stop1()+disTime((a-(e.getPos()+var))+(a-b)+((c.getSrc()+var)-b));
 
                 //test
             }
@@ -117,7 +117,7 @@ public class TasksElevator {
             if ((c.getState()==GOING2SRC||c.getState()==INIT) && e.getPos()<c.getSrc()) {//Extreme case
                 int a = getTop();
                 int b = getBottom();
-                return (numStop(b,a)+1)*stop1()+disTime((e.getPos()+var-b)+(a-b)+(a-c.getSrc()+var));
+                return numStop(b,a)*stop1()+disTime(((e.getPos()+var)-b)+(a-b)+(a-(c.getSrc()+var)));
                 //test
             }
             return numStop(e.getPos()+var,c.getDest()+var)*stop1()+disTime(e.getPos()-c.getDest());
@@ -168,7 +168,7 @@ public class TasksElevator {
         return all;
     }
     public double disTime(int dis){
-        return dis*e.getSpeed();
+        return dis/e.getSpeed();
     }
     public int getNext(){
         int next=e.getMinFloor();
@@ -194,11 +194,18 @@ public class TasksElevator {
         return next;
     }
     public int numStop(int start,int end){
-        int count=0;
-        for (int i=start;i<=end;i++)
-            if (floors[i]>0)
-                count++;
-        return count;
+//        int count=0;
+//        for (int i=start;i<=end;i++)
+//            if (floors[i]>0)
+//                count++;
+        ArrayList<Integer> arr=new ArrayList<>();
+        for (int i=0;i<calls.size();i++){
+            if((calls.get(i).getSrc()+var)>=start && (calls.get(i).getSrc()+var)<=end && !arr.contains(calls.get(i).getSrc()))
+                arr.add(calls.get(i).getSrc());
+            if((calls.get(i).getDest()+var)>=start && (calls.get(i).getDest()+var)<=end && !arr.contains(calls.get(i).getDest()))
+                arr.add(calls.get(i).getDest());
+        }
+        return arr.size();
     }
     /**
      * @return index in floor array.
