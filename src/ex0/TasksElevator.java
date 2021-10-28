@@ -21,7 +21,13 @@ public class TasksElevator {
         this.calls=new ArrayList<>();
         this.var=0-e.getMinFloor();
     }
-
+    public TasksElevator(){
+        lastDirect=UP;
+        this.e = null;
+        this.floors=new int[5];
+        this.calls=new ArrayList<>();
+        this.var=0;
+    }
     public int[] getFloors() {
         return floors;
     }
