@@ -6,7 +6,7 @@ public class TasksElevator {
     public static final int NULL=0,SRC=1, DEST=2,SRCDEST=3;
     public static final int INIT=0, GOING2SRC=1, GOIND2DEST=2, DONE=3;
     public static final int UP=1,DOWN=-1;
-    public int var;
+    private int var;
     private int lastDirect;
     private Elevator e;
     private int[] floors;
@@ -235,11 +235,17 @@ public class TasksElevator {
     private double stop1() {
         return e.getTimeForClose()+e.getTimeForOpen()+e.getStartTime()+e.getStopTime();
     }
-
+    private double stopE() {
+        return e.getTimeForOpen()+e.getStopTime();
+    }
     public void cleanCall() {
         for (int i = 0;i<calls.size();i++){
             if (calls.get(i).getState()==DONE)
                 calls.remove(calls.get(i));
         }
+    }
+
+    public int getVar() {
+        return var;
     }
 }

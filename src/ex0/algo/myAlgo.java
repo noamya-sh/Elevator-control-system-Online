@@ -61,7 +61,7 @@ public class myAlgo implements ElevatorAlgo {
                 }
             }
         }
-        if (flag==true){
+        if (flag){
             addCall(ind,c);
             return ind;
         }
@@ -77,7 +77,7 @@ public class myAlgo implements ElevatorAlgo {
                     }
                 }
         }
-        if (flag==true){
+        if (flag){
             addCall(ind,c);
             return ind;
         }
@@ -102,8 +102,9 @@ public class myAlgo implements ElevatorAlgo {
     }
 
     private void addCall(int ind, CallForElevator c) {
+        int v=t[ind].getVar();
         t[ind].getCalls().add(c);
-        if (t[ind].numStop(e[ind].getPos()+t[ind].var,c.getSrc()+t[ind].var)==1)
+        if (t[ind].numStop(e[ind].getPos()+v,c.getSrc()+v)==1)
             e[ind].stop(c.getSrc());
         t[ind].addSrc2floors(c.getSrc());
 
@@ -120,8 +121,15 @@ public class myAlgo implements ElevatorAlgo {
         if (e[elev].getState()==LEVEL){
             refresh(elev);
             if(!t[elev].getCalls().isEmpty())
-                e[elev].goTo(t[elev].getNext());
+                e[elev].goTo(closeStop(elev));
+//                e[elev].goTo(t[elev].getNext());
         }
+//        else{
+//            if (e[elev].getState()==UP && t[elev].disTime(closeStop(elev,UP)-e[elev].getPos())>e[elev].getStopTime())
+//                e[elev].stop(closeStop(elev,UP));
+//            if (e[elev].getState()==DOWN && t[elev].disTime(e[elev].getPos()-closeStop(elev,DOWN))>e[elev].getStopTime())
+//                e[elev].stop(closeStop(elev,DOWN));
+//        }
     }
     private void refresh(int g){
         int x=t[g].stateFloor(e[g].getPos());
@@ -130,5 +138,18 @@ public class myAlgo implements ElevatorAlgo {
         t[g].cleanFloor(e[g].getPos());
         t[g].cleanCall();
     }
-
+    private int closeStop(int el){
+        int v=t[el].getVar();
+        int[] f=t[el].getFloors();
+        int i=e[el].getPos()+v+1;
+        int j=i-2;
+        while (i<f.length || j>=0){
+            if (i<f.length && f[i]>0)
+                return i-v;
+            if (j>=0 && f[j]>0)
+                return j-v;
+            i++;j--;
+        }
+       return e[el].getPos();
+    }
 }
