@@ -6,15 +6,23 @@ import ex0.Elevator;
 import ex0.TasksElevator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+/**
+ This class implements "ElevatorAlgo".
+ The main objects it stores in it are: Building, an array of Elevator and an array of "TaskElevator" - an object
+ that centralizes the tasks of each elevator.
+ The important functions in this class - "allocateAnElevator" and "cmdElevator" manage all building elevators.
+ */
 public class myAlgo implements ElevatorAlgo {
     public static final int UP = 1, LEVEL = 0, DOWN = -1, ERROR = -2;
     private Building b;
-    private Elevator[] e;
-    private TasksElevator[] t;
-    private int[] stops;
-    private int[] go;
+    private Elevator[] e;//all Elevator of this Building.
+    private TasksElevator[] t;//for each Elevator.
+    private int[] stops;//for the special command "stop" (if a "stop" order is given, no further "stop" order can be given until the elevator reaches the floor).
+    private int[] go;//saves the floor to which the "goTo" command was given.
 
+    //constructor
     public myAlgo(Building building) {
         this.b=building;
         this.e=new Elevator[building.numberOfElevetors()];
@@ -27,8 +35,7 @@ public class myAlgo implements ElevatorAlgo {
         for (int i=0;i<go.length;i++)
             go[i]=e[i].getPos();
         this.stops=new int[e.length];
-        for (int i=0;i<stops.length;i++)
-            stops[i]=Integer.MAX_VALUE;
+        Arrays.fill(stops,Integer.MAX_VALUE);
     }
 
 
@@ -62,6 +69,8 @@ public class myAlgo implements ElevatorAlgo {
         //first - search elevator without calls
         for (int i=0;i<t.length;i++){
             if (t[i].getCalls().isEmpty()){
+                /*If an elevator is found without other calls and it is
+                 about to arrive the fastest, allocate call to it.*/
                 if (temp>t[i].disTime(Math.abs(e[i].getPos()-c.getSrc()))){
                     temp=t[i].disTime(Math.abs(e[i].getPos()-c.getSrc()));
                     ind=i;
@@ -75,15 +84,19 @@ public class myAlgo implements ElevatorAlgo {
         }
         //second - search elevator at this direction
         for (int i=0;i<t.length;i++){
-            if (c.getType()==t[i].getLastDirect())
-                if ((c.getType()==UP && e[i].getPos()<c.getSrc()) || (c.getType()==DOWN && e[i].getPos()>c.getSrc())) {
-                    double a= t[i].taskTime(c)+calTime(t[i])+t[i].timeAddition(c);
-                    if (a < temp && t[i].taskTime(c)>(e[i].getStopTime()+1)) {
+            if (c.getType()==t[i].getLastDirect()) {
+                /*If an elevator is found moving in the direction needed for the call,
+                it is before of the src floor of the call and will be able to stop at,
+                allocate the call to this elevator.*/
+                if ((c.getType() == UP && e[i].getPos() < c.getSrc()) || (c.getType() == DOWN && e[i].getPos() > c.getSrc())) {
+                    double a = t[i].taskTime(c) + calTime(t[i]) + t[i].timeAddition(c);
+                    if (a < temp && t[i].taskTime(c) > (e[i].getStopTime() + 1)) {//take the one whose tasks time is minimal
                         temp = a;
-                        ind =i;
-                        flag=true;
+                        ind = i;
+                        flag = true;
                     }
                 }
+            }
         }
         if (flag){
             addCall(ind,c);
@@ -92,7 +105,7 @@ public class myAlgo implements ElevatorAlgo {
         //else - search min "cost" of time in elevators
         for (int i=0;i<t.length;i++){
             double a= t[i].taskTime(c)+calTime(t[i])+t[i].timeAddition(c);
-            if (a < temp) {
+            if (a < temp) {//take the one whose tasks time is minimal
                 temp = a;
                 ind = i;
             }
@@ -100,7 +113,7 @@ public class myAlgo implements ElevatorAlgo {
         addCall(ind,c);
         return ind;
     }
-
+    //calculate all calls of specific Elevator
     private double calTime(TasksElevator tt) {
         double all=0;
         ArrayList<CallForElevator> calls=tt.getCalls();
@@ -108,12 +121,9 @@ public class myAlgo implements ElevatorAlgo {
             all+=tt.taskTime(calls.get(i));
         return all;
     }
-
+    //insert new call to "calls" ArrayList and add the stop floor
     private void addCall(int ind, CallForElevator c) {
-        int v=t[ind].getVar();
         t[ind].getCalls().add(c);
-//        if (t[ind].numStop(e[ind].getPos()+v,c.getSrc()+v)==1)
-//            e[ind].stop(c.getSrc());
         t[ind].addSrc2floors(c.getSrc());
 
     }
@@ -126,13 +136,14 @@ public class myAlgo implements ElevatorAlgo {
      */
     @Override
     public void cmdElevator(int elev) {
+        //"goTo" command can only be given when the elevator is in LEVEL state.
         if (e[elev].getState()==LEVEL){
-            if (stops[elev]==e[elev].getPos())
+            if (stops[elev]==e[elev].getPos())//if this floor was given a "stop" order
                 stops[elev]=Integer.MAX_VALUE;
-            refresh(elev);
+            refresh(elev);//update the data
             if(!t[elev].getCalls().isEmpty()){
                 int target=closeStop(elev);
-                int direct=0;
+                int direct;
                 if (e[elev].getPos()<target)
                     direct=UP;
                 else
@@ -144,12 +155,15 @@ public class myAlgo implements ElevatorAlgo {
         }
         if (e[elev].getState()==UP||e[elev].getState()==DOWN){
             int c=closeStop(elev,e[elev].getState());
-            if (go[elev]!=c && stops[elev]==Integer.MAX_VALUE){// && t[elev].disTime(Math.abs(c-e[elev].getPos()))>(e[elev].getStopTime()+1))
+            //If the elevator go to a specific floor but there is a floor on the way that the elevator needs to stop at.
+            //If the elevator does not do another "stop" command.
+            if (go[elev]!=c && stops[elev]==Integer.MAX_VALUE){
                 stops[elev]=c;
                 e[elev].stop(c);
             }
         }
     }
+    //function to update data
     private void refresh(int g){
         int x=t[g].stateFloor(e[g].getPos());
         if(x==TasksElevator.SRC||x==TasksElevator.SRCDEST)
@@ -157,6 +171,7 @@ public class myAlgo implements ElevatorAlgo {
         t[g].cleanFloor(e[g].getPos());
         t[g].cleanCall();
     }
+    /**find the close floor that Elevator need to stop at. base on direct input**/
     private int closeStop(int elev, int d) {
         int v=t[elev].getVar();
         int[] f=t[elev].getFloors();
@@ -172,6 +187,7 @@ public class myAlgo implements ElevatorAlgo {
         }
         return e[elev].getPos();
     }
+    /**find the close floor that Elevator need to stop at. without direct input**/
     private int closeStop(int el){
         int v=t[el].getVar();
         int[] f=t[el].getFloors();
