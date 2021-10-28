@@ -103,26 +103,27 @@ public class TasksElevator {
         if (c.getState()==DONE){
             return 0;
         }
+        double x=c.getTime(INIT);
         if(lastDirect==UP && c.getType()==UP){
             if ((c.getState()==GOING2SRC||c.getState()==INIT) && e.getPos()>c.getSrc()) {//Extreme case
                 int a = getTop();
                 int b = getBottom();
-                return numStop(b,a)*stop1()+disTime((a-(e.getPos()+var))+(a-b)+((c.getSrc()+var)-b));
+                return x+numStop(b,a)*stop1()+disTime((a-(e.getPos()+var))+(a-b)+((c.getSrc()+var)-b));
 
                 //test
             }
-            return numStop(e.getPos()+var,c.getDest()+var)*stop1()+disTime(c.getDest()-e.getPos());
+            return x+numStop(e.getPos()+var,c.getDest()+var)*stop1()+disTime(c.getDest()-e.getPos());
         }
         if(lastDirect==DOWN && c.getType()==DOWN){
             if ((c.getState()==GOING2SRC||c.getState()==INIT) && e.getPos()<c.getSrc()) {//Extreme case
                 int a = getTop();
                 int b = getBottom();
-                return numStop(b,a)*stop1()+disTime(((e.getPos()+var)-b)+(a-b)+(a-(c.getSrc()+var)));
+                return x+numStop(b,a)*stop1()+disTime(((e.getPos()+var)-b)+(a-b)+(a-(c.getSrc()+var)));
                 //test
             }
-            return numStop(e.getPos()+var,c.getDest()+var)*stop1()+disTime(e.getPos()-c.getDest());
+            return x+numStop(e.getPos()+var,c.getDest()+var)*stop1()+disTime(e.getPos()-c.getDest());
         }
-        return 0;
+        return x;
     }
     public double timeAddition(CallForElevator c){
         double all=0,t=0;
