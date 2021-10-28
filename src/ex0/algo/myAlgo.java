@@ -12,6 +12,8 @@ public class myAlgo implements ElevatorAlgo {
     private Building b;
     private Elevator[] e;
     private TasksElevator[] t;
+    private int[] stops;
+    private int[] go;
 
     public myAlgo(Building building) {
         this.b=building;
@@ -21,6 +23,12 @@ public class myAlgo implements ElevatorAlgo {
         this.t=new TasksElevator[e.length];
         for (int i=0;i<t.length;i++)
             t[i]=new TasksElevator(e[i]);
+        this.go=new int[e.length];
+        for (int i=0;i<go.length;i++)
+            go[i]=e[i].getPos();
+        this.stops=new int[e.length];
+        for (int i=0;i<stops.length;i++)
+            stops[i]=Integer.MAX_VALUE;
     }
 
 
@@ -70,7 +78,7 @@ public class myAlgo implements ElevatorAlgo {
             if (c.getType()==t[i].getLastDirect())
                 if ((c.getType()==UP && e[i].getPos()<c.getSrc()) || (c.getType()==DOWN && e[i].getPos()>c.getSrc())) {
                     double a= t[i].taskTime(c)+calTime(t[i])+t[i].timeAddition(c);
-                    if (a < temp && t[i].taskTime(c)>=(e[i].getStopTime())) {
+                    if (a < temp && t[i].taskTime(c)>(e[i].getStopTime()+1)) {
                         temp = a;
                         ind =i;
                         flag=true;
@@ -104,8 +112,8 @@ public class myAlgo implements ElevatorAlgo {
     private void addCall(int ind, CallForElevator c) {
         int v=t[ind].getVar();
         t[ind].getCalls().add(c);
-        if (t[ind].numStop(e[ind].getPos()+v,c.getSrc()+v)==1)
-            e[ind].stop(c.getSrc());
+//        if (t[ind].numStop(e[ind].getPos()+v,c.getSrc()+v)==1)
+//            e[ind].stop(c.getSrc());
         t[ind].addSrc2floors(c.getSrc());
 
     }
@@ -119,17 +127,28 @@ public class myAlgo implements ElevatorAlgo {
     @Override
     public void cmdElevator(int elev) {
         if (e[elev].getState()==LEVEL){
+            if (stops[elev]==e[elev].getPos())
+                stops[elev]=Integer.MAX_VALUE;
             refresh(elev);
-            if(!t[elev].getCalls().isEmpty())
-                e[elev].goTo(closeStop(elev));
-//                e[elev].goTo(t[elev].getNext());
+            if(!t[elev].getCalls().isEmpty()){
+                int target=closeStop(elev);
+                int direct=0;
+                if (e[elev].getPos()<target)
+                    direct=UP;
+                else
+                    direct=DOWN;
+                t[elev].setLastDirect(direct);
+                go[elev]=target;
+                e[elev].goTo(target);
+            }
         }
-//        else{
-//            if (e[elev].getState()==UP && t[elev].disTime(closeStop(elev,UP)-e[elev].getPos())>e[elev].getStopTime())
-//                e[elev].stop(closeStop(elev,UP));
-//            if (e[elev].getState()==DOWN && t[elev].disTime(e[elev].getPos()-closeStop(elev,DOWN))>e[elev].getStopTime())
-//                e[elev].stop(closeStop(elev,DOWN));
-//        }
+        if (e[elev].getState()==UP||e[elev].getState()==DOWN){
+            int c=closeStop(elev,e[elev].getState());
+            if (go[elev]!=c && stops[elev]==Integer.MAX_VALUE){// && t[elev].disTime(Math.abs(c-e[elev].getPos()))>(e[elev].getStopTime()+1))
+                stops[elev]=c;
+                e[elev].stop(c);
+            }
+        }
     }
     private void refresh(int g){
         int x=t[g].stateFloor(e[g].getPos());
@@ -137,6 +156,21 @@ public class myAlgo implements ElevatorAlgo {
             t[g].addDest2floors(e[g].getPos());
         t[g].cleanFloor(e[g].getPos());
         t[g].cleanCall();
+    }
+    private int closeStop(int elev, int d) {
+        int v=t[elev].getVar();
+        int[] f=t[elev].getFloors();
+        if (d==UP) {
+            for (int i = e[elev].getPos() + v; i < f.length; i++)
+                if (f[i] > 0)
+                    return i - v;
+        }
+        if  (d==DOWN){
+            for (int i=e[elev].getPos()+v;i>=0;i--)
+                if (f[i]>0)
+                    return i-v;
+        }
+        return e[elev].getPos();
     }
     private int closeStop(int el){
         int v=t[el].getVar();
